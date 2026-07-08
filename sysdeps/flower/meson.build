@@ -62,58 +62,37 @@ if not no_headers
 		'include/abi-bits/sig-limits.h',
 		'include/abi-bits/sigset_t.h',
 		subdir: 'abi-bits',
-		follow_symlinks: true
+		follow_symlinks: true,
 	)
 endif
 
 if not headers_only
-	crt = custom_target('crt1',
-        build_by_default: true,
-        command: c_compiler.cmd_array() + ['-c', '-o', '@OUTPUT@', '@INPUT@'],
-        input: 'crt1.S',
-        output: 'crt1.o',
-        install: true,
-        install_dir: get_option('libdir')
-    )
+	crt_files = ['crt1', 'crti', 'crtn']
 
-    crt_pie = custom_target('Scrt1',
-        build_by_default: true,
-        command: c_compiler.cmd_array() + ['-c', '-o', '@OUTPUT@', '@INPUT@'],
-        input: 'crt1.S',
-        output: 'Scrt1.o',
-        install: true,
-        install_dir: get_option('libdir')
-    )
-
-    custom_target('crti',
-        build_by_default: true,
-        command: c_compiler.cmd_array() + ['-c', '-o', '@OUTPUT@', '@INPUT@'],
-        input: 'crti.S',
-        output: 'crti.o',
-        install: true,
-        install_dir: get_option('libdir')
-    )
-
-    custom_target('crtn',
-        build_by_default: true,
-        command: c_compiler.cmd_array() + ['-c', '-o', '@OUTPUT@', '@INPUT@'],
-        input: 'crtn.S',
-        output: 'crtn.o',
-        install: true,
-        install_dir: get_option('libdir')
-    )
+	foreach crt_name : crt_files
+		crt_path = crt_name + '.S'
+		crt_file = files(host_machine.cpu_family() / crt_path)
+		crt = custom_target(
+			crt_name,
+			build_by_default: true,
+			command: c_compiler.cmd_array() + ['-c', '-o', '@OUTPUT@', '@INPUT@'],
+			input: crt_file,
+			output: crt_name + '.o',
+			install: true,
+			install_dir: get_option('libdir'),
+		)
+	endforeach
 endif
 
-
 rtld_sources += files(
-    'sysdeps.cpp',
+	'generic/sysdeps.cpp',
 )
 
 rtld_include_dirs += include_directories('include')
 
 libc_sources += files(
-    'entry.cpp',
-    'sysdeps.cpp',
+	'generic/entry.cpp',
+	'generic/sysdeps.cpp',
 )
 
 libc_include_dirs += include_directories('include')
