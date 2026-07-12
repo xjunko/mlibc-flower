@@ -2,6 +2,7 @@
 #include <abi-bits/errno.h>
 #include <bits/ensure.h>
 #include <cstdint>
+#include <flower/archctl.hpp>
 #include <flower/syscall.hpp>
 #include <mlibc/all-sysdeps.hpp>
 #include <string.h>
@@ -78,11 +79,10 @@ int sys_close(int fd) {
 	return 0;
 }
 
-int sys_mkdir(const char *, mode_t) { return -1; }
+int sys_mkdir(const char *, mode_t) { STUB(); }
 
 int sys_tcb_set(void *pointer) {
-	syscall(SYSCALL_WRITEFSBASE, (uint64_t)pointer);
-	return 0;
+	return syscall(SYSCALL_ARCHCTL, ARCHCTL_SET_FS, (uint64_t)pointer);
 }
 
 int sys_anon_allocate(size_t size, void **pointer) {
@@ -116,6 +116,14 @@ int sys_vm_unmap(void *addr, size_t size) {
 	return 0;
 }
 
+int sys_vm_protect(void *addr, size_t size, int prot) {
+	uint64_t ret = syscall(SYSCALL_MPROTECT, (uint64_t)addr, size, prot);
+	if (ret != 0) {
+		return -ret;
+	}
+	return 0;
+}
+
 int sys_clock_get(int clock_id, time_t *tp, long *nsec) {
 	uint64_t millis = 0;
 
@@ -143,7 +151,7 @@ int sys_sleep(time_t *sec, long *nsec) {
 		millis += (uint64_t)(*nsec) / 1000000;
 	}
 
-	syscall(SYSCALL_MSLEEP, (uintptr_t)&millis);
+	syscall(SYSCALL_MSLEEP, millis);
 
 	return 0;
 }
