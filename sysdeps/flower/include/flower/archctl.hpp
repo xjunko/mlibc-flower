@@ -1,0 +1,10 @@
+#ifndef _FLOWER_LOVE_ARCHCTL
+#define _FLOWER_LOVE_ARCHCTL
+
+#define ARCHCTL_SET_GS 0x1001
+#define ARCHCTL_SET_FS 0x1002
+
+#define ARCHCTL_GET_FS 0x1003
+#define ARCHCTL_GET_GS 0x1004
+
+#endif
